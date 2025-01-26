@@ -4,12 +4,16 @@ import dotenv from 'dotenv';
 
 // Load environment variables from .env
 dotenv.config();
+
+// CORS configuration for a single frontend origin
 const corsOptions = {
-    origin: "https://tiziri-camp-flfe.vercel.app/", // Allow your frontend URL
+    origin: "https://tiziri-camp-flfe.vercel.app", // Allow your frontend URL
     methods: ['POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true, // Allow cookies or authentication headers if needed
 };
+
+// Apply CORS middleware inside the serverless function
 const corsMiddleware = cors(corsOptions);
 
 // WhatsApp message sending logic
@@ -51,22 +55,25 @@ const sendWhatsAppMessage = async (From, message) => {
 
 // Vercel API handler
 export default async function handler(req, res) {
-    if (req.method === 'POST') {
-        const { From, message } = req.body;
+    // Apply CORS middleware
+    corsMiddleware(req, res, async () => {
+        if (req.method === 'POST') {
+            const { From, message } = req.body;
 
-        if (!From || !message) {
-            return res.status(400).json({ error: 'Missing From or message parameter.' });
-        }
+            if (!From || !message) {
+                return res.status(400).json({ error: 'Missing From or message parameter.' });
+            }
 
-        const result = await sendWhatsAppMessage(From, message);
+            const result = await sendWhatsAppMessage(From, message);
 
-        if (result.success) {
-            res.status(200).json({ message: 'Message sent successfully!', sid: result.sid });
+            if (result.success) {
+                res.status(200).json({ message: 'Message sent successfully!', sid: result.sid });
+            } else {
+                res.status(500).json({ error: result.error });
+            }
         } else {
-            res.status(500).json({ error: result.error });
+            res.setHeader('Allow', ['POST']);
+            res.status(405).json({ error: `Method ${req.method} not allowed.` });
         }
-    } else {
-        res.setHeader('Allow', ['POST']);
-        res.status(405).json({ error: `Method ${req.method} not allowed.` });
-    }
+    });
 }
