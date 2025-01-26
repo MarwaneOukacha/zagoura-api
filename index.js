@@ -3,9 +3,18 @@ import dotenv from 'dotenv';
 
 // Load environment variables from .env
 dotenv.config();
+const corsOptions = {
+    origin: "https://tiziri-camp-flfe.vercel.app/", // Allow your frontend URL
+    methods: ['POST'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true, // Allow cookies or authentication headers if needed
+};
 
+app.use(cors(corsOptions));
+
+app.options('*', cors());
 // WhatsApp message sending logic
-export const sendWhatsAppMessage = async (From, message) => {
+const sendWhatsAppMessage = async (From, message) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const fromWhatsApp = process.env.TWILIO_WHATSAPP_FROM;
