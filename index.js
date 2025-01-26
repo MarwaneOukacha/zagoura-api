@@ -1,3 +1,4 @@
+import cors from 'cors';
 import axios from 'axios';
 import dotenv from 'dotenv';
 
@@ -9,10 +10,8 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true, // Allow cookies or authentication headers if needed
 };
+const corsMiddleware = cors(corsOptions);
 
-app.use(cors(corsOptions));
-
-app.options('*', cors());
 // WhatsApp message sending logic
 const sendWhatsAppMessage = async (From, message) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
