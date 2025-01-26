@@ -1,29 +1,10 @@
-import express from 'express';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import cors from 'cors';
 
-// Charger les variables d'environnement depuis le fichier .env
+// Load environment variables from .env
 dotenv.config();
 
-const app = express();
-const port = 4000;
-
-// Middleware pour parser le JSON
-app.use(express.json());
-
-// CORS Configuration
-const corsOptions = {
-    origin: 'http://localhost:3000', // Allow your frontend URL
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true, // Allow cookies or authentication headers if needed
-};
-
-app.use(cors(corsOptions));
-
-app.options('*', cors());
-
+// WhatsApp message sending logic
 export const sendWhatsAppMessage = async (From, message) => {
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -60,22 +41,24 @@ export const sendWhatsAppMessage = async (From, message) => {
     }
 };
 
-app.post('/send-message', async (req, res) => {
-    const { From, message } = req.body;
+// Vercel API handler
+export default async function handler(req, res) {
+    if (req.method === 'POST') {
+        const { From, message } = req.body;
 
-    if (!From || !message) {
-        return res.status(400).json({ error: 'Missing From or message parameter.' });
-    }
+        if (!From || !message) {
+            return res.status(400).json({ error: 'Missing From or message parameter.' });
+        }
 
-    const result = await sendWhatsAppMessage(From, message);
+        const result = await sendWhatsAppMessage(From, message);
 
-    if (result.success) {
-        res.status(200).json({ message: 'Message sent successfully!', sid: result.sid });
+        if (result.success) {
+            res.status(200).json({ message: 'Message sent successfully!', sid: result.sid });
+        } else {
+            res.status(500).json({ error: result.error });
+        }
     } else {
-        res.status(500).json({ error: result.error });
+        res.setHeader('Allow', ['POST']);
+        res.status(405).json({ error: `Method ${req.method} not allowed.` });
     }
-});
-
-app.listen(port, () => {
-    console.log(`API en cours d'exécution sur http://localhost:${port}`);
-});
+}
