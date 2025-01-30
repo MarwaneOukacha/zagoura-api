@@ -7,7 +7,7 @@ dotenv.config();
 
 // CORS configuration for a single frontend origin
 const corsOptions = {
-    origin: "https://tiziri-camp-flfe.vercel.app", // Allow your frontend URL
+    origin: "https://zagora-excurtion.com/", // Allow your frontend URL
     methods: ['POST'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true, // Allow cookies or authentication headers if needed
